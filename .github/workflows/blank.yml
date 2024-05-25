@@ -1,0 +1,63 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive  # Ensure submodules are checked out with the main repository
+
+      - name: Authenticate with Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login --username ${{ secrets.DOCKER_USERNAME }} --password-stdin
+  
+      - name: Set up database
+        run: |
+          docker compose -f docker-compose.yml build mysql
+          docker compose -f docker-compose.yml build phpmyadmin
+  
+      - name: Build back-end application image
+        run: |
+          cp student-backend/Dockerfile .
+          docker compose -f docker-compose.yml build student-backend
+  
+      - name: Build front-end application image
+        run: |
+          cp student-backend/Dockerfile .
+          docker compose -f docker-compose.yml build student-frontend
+  
+      - name: Push images to Docker Hub
+        run: docker compose -f docker-compose.yml push
+  
+      - name: Clean and Deploy to Dev Environment
+        run: |
+          docker images
+          docker compose -f docker-compose.yml down -v
+          yes | docker container prune
+          docker compose -f docker-compose.yml up -d
+          docker compose ps
+          docker network ls
+          docker volume ls
+  
+      - name: Clean up
+        run: docker logout

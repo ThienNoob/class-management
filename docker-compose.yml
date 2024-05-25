@@ -1,0 +1,237 @@
+version: '3.8'
+services:
+  auth-service-mysql:
+    image: mysql:8.3.0
+    container_name: auth-service-mysql-container
+    restart: on-failure
+    ports:
+      - "3305:3306"
+    networks:
+      - backend-network
+    environment:
+      - MYSQL_DATABASE=${MYSQL_DATABASE_AUTH}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_HOST=auth-service-mysql-container
+    volumes:
+      - auth-service-mysql-data:/var/lib/mysql
+      - ./class-management-auth-service/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3306"]
+      interval: 60s
+      timeout: 20s
+      retries: 5
+      start_period: 30s
+  student-service-mysql:
+    image: mysql:8.3.0
+    container_name: student-service-mysql-container
+    restart: on-failure
+    ports:
+      - "3307:3306"
+    networks:
+      - backend-network
+    environment:
+      - MYSQL_DATABASE=${MYSQL_DATABASE_STUDENT}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_HOST=student-service-mysql-container
+    volumes:
+      - student-service-mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3306"]
+      interval: 60s
+      timeout: 20s
+      retries: 5
+      start_period: 30s
+  auth-phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: auth-phpmyadmin-container
+    restart: on-failure
+    ports:
+      - "79:80"
+    networks:
+      - backend-network
+    environment:
+      - PMA_HOST=auth-service-mysql
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    depends_on:
+      - auth-service-mysql
+  student-phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: student-phpmyadmin-container
+    restart: on-failure
+    ports:
+      - "81:80"
+    networks:
+      - backend-network
+    environment:
+      - PMA_HOST=student-service-mysql
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    depends_on:
+      - student-service-mysql
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb-container
+    restart: on-failure
+    ports:
+      - "27017:27017"
+    networks:
+      - backend-network
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+    volumes:
+      - mongodb-data:/data/db
+  mongo-express:
+    image: mongo-express:latest
+    container_name: mongo-express-container
+    restart: on-failure
+    ports:
+      - "8081:8081"
+    networks:
+      - backend-network
+    environment:
+      - ME_CONFIG_BASICAUTH=false
+      - ME_CONFIG_MONGODB_SERVER=mongodb
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=${ME_CONFIG_MONGO_ADMINUSERNAME}
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=${ME_CONFIG_MONGODB_ADMINPASSWORD}
+    depends_on:
+      - mongodb
+  postgresql:
+    image: postgres:latest
+    container_name: postgresql-container
+    restart: on-failure
+    ports:
+      - "5432:5432"
+    networks:
+      - backend-network
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - postgresql-data:/var/lib/postgresql/data
+      - ./class-management-class-service/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 60s
+      timeout: 20s
+      retries: 5
+      start_period: 30s
+  pgadmin:
+    image: elestio/pgadmin:latest
+    container_name: pgadmin-container
+    restart: on-failure
+    ports:
+       - "8082:80"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+    networks:
+      - backend-network
+    depends_on:
+      postgresql:
+        condition: service_healthy
+  class-mangement-fe:
+    build:
+      context: ./class-management-fe
+      dockerfile: Dockerfile
+    image: th1enlm02/class-management-fe
+    container_name: class-management-fe-container
+    ports:
+      - "3000:3000"
+    networks:
+      - frontend-network
+    environment:
+      - REACT_APP_BASE_URL_AUTH=http://localhost:3077
+      - REACT_APP_BASE_URL_STUDENT=http://localhost:8080
+      - REACT_APP_BASE_URL_LECTURER=http://localhost:5000
+      - REACT_APP_BASE_URL_CLASS=http://localhost:80
+    depends_on:
+      - class-mangement-auth-service
+      - class-management-student-service
+      - class-management-lecturer-service
+      - class-management-class-service
+  class-mangement-auth-service:
+    build:
+      context: ./class-management-auth-service
+      dockerfile: Dockerfile
+    image: th1enlm02/class-management-auth-service
+    container_name: class-management-auth-service-container
+    ports:
+      - "3077:3077"
+    networks:
+      - frontend-network
+      - backend-network
+    environment:
+      - BASE_URL_FE=http://localhost:3000
+      - AUTH_SERVICE_PORT=3077
+      - AUTH_SERVICE_HOST=auth-service-mysql-container
+      - AUTH_SERVICE_USER=root
+      - AUTH_SERVICE_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - AUTH_SERVICE_DATABASE=${MYSQL_DATABASE_AUTH}
+    depends_on:
+      auth-service-mysql:
+        condition: service_healthy
+  class-management-student-service:
+    build: 
+      context: ./class-management-student-service
+      dockerfile: Dockerfile
+    image: th1enlm02/class-management-student-service
+    container_name: class-management-student-service-container
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}
+      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
+    depends_on:
+      student-service-mysql:
+        condition: service_healthy
+    networks:
+      - frontend-network
+      - backend-network
+  class-management-lecturer-service:
+    build: 
+      context: ./class-management-lecturer-service
+      dockerfile: Dockerfile
+    image: th1enlm02/class-management-lecturer-service
+    container_name: class-management-lecturer-service-container
+    ports:
+      - "5000:5000"
+    environment:
+      - HOST_NAME=${ME_CONFIG_MONGODB_ADMINUSERNAME}:${ME_CONFIG_MONGODB_ADMINPASSWORD}@mongodb-container
+    networks:
+      - frontend-network
+      - backend-network
+    depends_on:
+      - mongodb
+  class-management-class-service:
+    build:
+      context: ./class-management-class-service
+      dockerfile: Dockerfile
+    image: th1enlm02/class-management-class-service
+    container_name: class-management-class-service-container
+    ports:
+      - "8000:80"
+    environment:
+      - HOST=postgresql-container
+      - DB_NAME=${POSTGRES_DB}
+      - USER=${POSTGRES_USER}
+      - PASSWORD=${POSTGRES_PASSWORD}
+    networks:
+      - frontend-network
+      - backend-network
+    depends_on:
+      postgresql:
+        condition: service_healthy
+networks:
+  frontend-network:
+  backend-network:
+volumes:
+  auth-service-mysql-data:
+  student-service-mysql-data:
+  mongodb-data:
+  postgresql-data:
