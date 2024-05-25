@@ -9,10 +9,10 @@ services:
     networks:
       - backend-network
     environment:
-      - MYSQL_DATABASE=${MYSQL_DATABASE_AUTH}
-      - MYSQL_USER=${MYSQL_USER}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=studentdb
+      - MYSQL_USER=chucthien03
+      - MYSQL_PASSWORD=chucthien03
+      - MYSQL_ROOT_PASSWORD=chucthien03_root
       - MYSQL_HOST=auth-service-mysql-container
     volumes:
       - auth-service-mysql-data:/var/lib/mysql
