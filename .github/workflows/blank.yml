@@ -62,7 +62,7 @@ jobs:
   
       - name: Build front-end application image
         run: |
-          cp class-mangement-fe/Dockerfile .
+          cp class-mangement-FE/Dockerfile .
           docker compose -f docker-compose.yml build class-mangement-fe
   
       - name: Push images to Docker Hub
