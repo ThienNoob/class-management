@@ -136,10 +136,10 @@ services:
         condition: service_healthy
   class-mangement-fe:
     build:
-      context: ./class-management-fe
+      context: ./class-management-FE
       dockerfile: Dockerfile
-    image: th1enlm02/class-management-fe
-    container_name: class-management-fe-container
+    image: th1enlm02/class-management-FE
+    container_name: class-management-FE-container
     ports:
       - "3000:3000"
     networks:
