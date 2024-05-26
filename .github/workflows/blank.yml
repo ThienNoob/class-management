@@ -31,23 +31,36 @@ jobs:
       - name: Authenticate with Docker Hub
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login --username ${{ secrets.DOCKER_USERNAME }} --password-stdin
   
-      - name: Set up database
+      - name: Set up databases
         run: |
           docker compose -f docker-compose.yml build student-service-mysql
           docker compose -f docker-compose.yml build auth-service-mysql
+          docker compose -f docker-compose.yml build mongodb  
+          docker compose -f docker-compose.yml build postgresql
+          
+      - name: Set up databases admin tool
+        run: |
           docker compose -f docker-compose.yml build auth-phpmyadmin
           docker compose -f docker-compose.yml build student-phpmyadmin
-          docker compose -f docker-compose.yml build mongodb
           docker compose -f docker-compose.yml build mongo-express
-          docker compose -f docker-compose.yml build postgresql
           docker compose -f docker-compose.yml build pgadmin
           
                               
   
-      - name: Build back-end application image
+      - name: Build back-end application images
         run: |
-          cp student-backend/Dockerfile .
-          docker compose -f docker-compose.yml build student-backend
+          # Copy Dockerfiles to the respective directories if needed
+          cp class-management-auth-service/Dockerfile ./class-management-auth-service/
+          cp class-management-student-service/Dockerfile ./class-management-student-service/
+          cp class-management-lecturer-service/Dockerfile ./class-management-lecturer-service/
+          cp class-management-class-service/Dockerfile ./class-management-class-service/
+      
+          # Build each back-end service
+          docker compose -f docker-compose.yml build class-mangement-auth-service
+          docker compose -f docker-compose.yml build class-management-student-service
+          docker compose -f docker-compose.yml build class-management-lecturer-service
+          docker compose -f docker-compose.yml build class-management-class-service
+
   
       - name: Build front-end application image
         run: |
