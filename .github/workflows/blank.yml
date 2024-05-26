@@ -49,23 +49,21 @@ jobs:
   
       - name: Build back-end application images
         run: |
-          # Copy Dockerfiles to the respective directories if needed
           cp class-management-auth-service/Dockerfile .
-          cp class-management-student-service/Dockerfile .
-          cp class-management-lecturer-service/Dockerfile .
-          cp class-management-class-service/Dockerfile .
-      
-          # Build each back-end service
           docker compose -f docker-compose.yml build class-mangement-auth-service
+          cp class-management-student-service/Dockerfile .
           docker compose -f docker-compose.yml build class-management-student-service
+          cp class-management-lecturer-service/Dockerfile .
           docker compose -f docker-compose.yml build class-management-lecturer-service
+          cp class-management-class-service/Dockerfile .
           docker compose -f docker-compose.yml build class-management-class-service
-
+      
+        
   
       - name: Build front-end application image
         run: |
-          cp student-backend/Dockerfile .
-          docker compose -f docker-compose.yml build student-frontend
+          cp class-mangement-fe/Dockerfile .
+          docker compose -f docker-compose.yml build class-mangement-fe
   
       - name: Push images to Docker Hub
         run: docker compose -f docker-compose.yml push
