@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: CI
+name: CI Pineline
 
 # Controls when the workflow will run
 on:
@@ -62,7 +62,7 @@ jobs:
   
       - name: Build front-end application image
         run: |
-          cp class-management-fe/Dockerfile .
+          cp class-management-FE/Dockerfile .
           docker compose -f docker-compose.yml build class-mangement-fe
   
       - name: Push images to Docker Hub
