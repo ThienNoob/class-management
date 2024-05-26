@@ -138,7 +138,7 @@ services:
     build:
       context: ./class-management-fe
       dockerfile: Dockerfile
-    image: th1enlm02/class-management-fe
+    image: chucthien03/class-management-fe
     container_name: class-management-fe-container
     ports:
       - "3000:3000"
@@ -158,7 +158,7 @@ services:
     build:
       context: ./class-management-auth-service
       dockerfile: Dockerfile
-    image: th1enlm02/class-management-auth-service
+    image: chucthien03/class-management-auth-service
     container_name: class-management-auth-service-container
     ports:
       - "3077:3077"
@@ -179,7 +179,7 @@ services:
     build: 
       context: ./class-management-student-service
       dockerfile: Dockerfile
-    image: th1enlm02/class-management-student-service
+    image: chucthien03/class-management-student-service
     container_name: class-management-student-service-container
     ports:
       - "8080:8080"
@@ -197,7 +197,7 @@ services:
     build: 
       context: ./class-management-lecturer-service
       dockerfile: Dockerfile
-    image: th1enlm02/class-management-lecturer-service
+    image: chucthien03/class-management-lecturer-service
     container_name: class-management-lecturer-service-container
     ports:
       - "5000:5000"
@@ -212,7 +212,7 @@ services:
     build:
       context: ./class-management-class-service
       dockerfile: Dockerfile
-    image: th1enlm02/class-management-class-service
+    image: chucthien03/class-management-class-service
     container_name: class-management-class-service-container
     ports:
       - "8000:80"
