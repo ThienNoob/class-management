@@ -1,6 +1,6 @@
-[submodule "class-management-FE"]
-	path = class-management-FE
-	url = https://github.com/ThienNoob/class-management-FE.git
+[submodule "class-management-fe"]
+	path = class-management-fe
+	url = https://github.com/ThienNoob/class-management-fe.git
 	branch = main
 [submodule "class-management-auth-service"]
 	path = class-management-auth-service
