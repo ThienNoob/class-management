@@ -32,5 +32,5 @@ jobs:
 
       - name: Commit update
         run: |
-          git remote set-url origin https://github.com/ThienNoob/student.git
+          git remote set-url origin https://github.com/ThienNoob/class-management.git
           git commit -am "Auto updated submodule references" && git push origin main || echo "No changes to commit"
