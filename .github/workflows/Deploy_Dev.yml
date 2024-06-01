@@ -1,0 +1,36 @@
+name: Deploy Dev Pipeline
+
+on:
+  workflow_run:
+    workflows: ["CI Pipeline"]  # Chỉnh sửa tên workflow CI Pipeline thành "CI Pipeline"
+    types:
+     - completed
+
+jobs:
+  build:
+    runs-on: self-hosted
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      with:
+        submodules: recursive  # Đảm bảo các submodule được checkout cùng với repository chính
+
+    - name: Set up submodule
+      run: |
+        git submodule sync --recursive
+        git submodule update --init --recursive
+
+   
+    - name: Clean and Deploy to Dev Environment
+      run: |
+        sudo docker images
+        sudo docker compose -f docker-compose.yml down -v
+        yes | sudo docker container prune
+        sudo docker compose -f docker-compose.yml up -d
+        sudo docker compose ps
+        sudo docker network ls
+        sudo docker volume ls
+
+    - name: Clean up
+      run: docker logout
