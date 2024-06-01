@@ -2,7 +2,7 @@ name: Deploy Dev Pipeline
 
 on:
   workflow_run:
-    workflows: ["CI Pipeline"]  # Chỉnh sửa tên workflow CI Pipeline thành "CI Pipeline"
+    workflows: ["CI Pineline"]  # Chỉnh sửa tên workflow CI Pipeline thành "CI Pipeline"
     types:
      - completed
 
