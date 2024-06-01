@@ -5,6 +5,7 @@ on:
     workflows: ["CI Pineline"]  # Chỉnh sửa tên workflow CI Pipeline thành "CI Pipeline"
     types:
      - completed
+  workflow_dispatch:
 
 jobs:
   build:
