@@ -45,6 +45,20 @@ jobs:
         run: |
           kubectl apply -f configMap.yaml -f secrets.yaml -f persistentVolume.yaml -f service.yaml -f deployment.yaml
 
+      - name: Wait for all Pods to be Running
+        run: |
+          for i in {1..60}; do
+            if kubectl get pods --all-namespaces | grep -v Running | grep -v Completed; then
+              echo "Waiting for pods to be in Running state..."
+              kubectl get all
+              sleep 10
+            else
+              echo "All pods are in Running state."
+              kubectl get all
+              break
+            fi
+          done
+
       - name: Check resources
         run: |
           kubectl get all
