@@ -1,149 +1,523 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: studentfrontend-deployment
+  name: class-management-fe-deployment
   labels:
-    app: studentfrontend
+    app: class-management-fe
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: studentfrontend
+      app: class-management-fe
   template:
     metadata:
       labels:
-        app: studentfrontend
+        app: class-management-fe
     spec:
       containers:
-        - name: studentfrontend-container
-          image: th1enlm02/student-frontend:latest
+        - name: class-management-fe-container
+          image: th1enlm02/class-management-fe:latest
           ports:
             - containerPort: 3000
+          env:
+            - name: REACT_APP_BASE_URL_AUTH
+              value: http://auth-service:3077
+            - name: REACT_APP_BASE_URL_STUDENT
+              value: http://student-service:8080
+            - name: REACT_APP_BASE_URL_LECTURER
+              value: http://lecturer-service:5000
+            - name: REACT_APP_BASE_URL_CLASS
+              value: http://class-service:8000
 
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: studentbackend-deployment
+  name: auth-deployment
   labels:
-    app: studentbackend
+    app: class-management-auth-service
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: studentbackend
+      app: class-management-auth-service
   template:
     metadata:
       labels:
-        app: studentbackend
+        app: class-management-auth-service
     spec:
       containers:
-        - name: studentbackend-container
-          image: th1enlm02/student-backend:latest
+        - name: class-management-auth-service-container
+          image: th1enlm02/class-management-auth-service:latest
           ports:
-            - containerPort: 8080
+            - containerPort: 3077
           env:
-            - name: DB_HOST
+            - name: BASE_URL_FE
+              value: http://frontend-service:3000
+            - name: AUTH_SERVICE_PORT
+              value: "3077"
+            - name: AUTH_SERVICE_HOST
+              value: auth-service-mysql
+            - name: AUTH_SERVICE_DATABASE
               valueFrom:
                 configMapKeyRef:
-                  name: mysql-configmap
-                  key: host
-            - name: DB_NAME
-              valueFrom:
-                configMapKeyRef:
-                  name: mysql-configmap
+                  name: auth-service-mysql-configmap
                   key: dbName
-            - name: DB_USERNAME
+            - name: AUTH_SERVICE_USER
               valueFrom:
                 secretKeyRef:
-                  name: mysql-secrets
+                  name: auth-service-mysql-secret
                   key: username
-            - name: DB_PASSWORD
+            - name: AUTH_SERVICE_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: mysql-secrets
+                  name: auth-service-mysql-secret
                   key: rootPassword
 
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mysql-deployment
+  name: auth-deployment-mysql
   labels:
-    app: mysql
+    app: auth-service-mysql
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: mysql
+      app: auth-service-mysql
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
-        app: mysql
+        app: auth-service-mysql
     spec:
       containers:
-        - name: mysql-container
+        - name: auth-service-mysql-container
           image: mysql:8.3.0
-          resources:
-            requests:
-              ephemeral-storage: "1Gi"
-            limits:
-              ephemeral-storage: "2Gi"
           ports:
             - containerPort: 3306
           env:
+            - name: MYSQL_HOST
+              value: auth-service-mysql
             - name: MYSQL_DATABASE
               valueFrom:
                 configMapKeyRef:
-                  name: mysql-configmap
+                  name: auth-service-mysql-configmap
                   key: dbName
-            - name: MYSQL_HOST
-              valueFrom:
-                configMapKeyRef:
-                  name: mysql-configmap
-                  key: host
             - name: MYSQL_USER
               valueFrom:
                 secretKeyRef:
-                  name: mysql-secrets
+                  name: auth-service-mysql-secret
                   key: username
             - name: MYSQL_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: mysql-secrets
+                  name: auth-service-mysql-secret
                   key: password
             - name: MYSQL_ROOT_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: mysql-secrets
+                  name: auth-service-mysql-secret
                   key: rootPassword
-              
+          volumeMounts:
+            - name: auth-service-mysql-data
+              mountPath: /var/lib/mysql
+            - name: init-sql
+              mountPath: /docker-entrypoint-initdb.d
+      volumes:
+        - name: auth-service-mysql-data
+          persistentVolumeClaim:
+            claimName: auth-service-mysql-pvc
+        - name: init-sql
+          configMap:
+            name: auth-service-mysql-initdb
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: phpmyadmin-deployment
+  name: auth-deployment-phpmyadmin
   labels:
-    app: phpmyadmin
+    app: auth-phpmyadmin
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: phpmyadmin
+      app: auth-phpmyadmin
   template:
     metadata:
       labels:
-        app: phpmyadmin
+        app: auth-phpmyadmin
     spec:
       containers:
-        - name: phpmyadmin-container
+        - name: auth-phpmyadmin-container
           image: phpmyadmin:latest
           ports:
             - containerPort: 80
           env:
             - name: PMA_HOST
-              value: mysql
+              value: auth-service-mysql
             - name: MYSQL_ROOT_PASSWORD
-              value: th1enlm02_root
+              valueFrom:
+                secretKeyRef:
+                  name: auth-service-mysql-secret
+                  key: rootPassword
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: student-deployment
+  labels:
+    app: class-management-student-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: class-management-student-service
+  template:
+    metadata:
+      labels:
+        app: class-management-student-service
+    spec:
+      containers:
+        - name: class-management-student-service-container
+          image: th1enlm02/class-management-student-service:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:mysql://student-service-mysql:3306/student_service
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: student-service-secret
+                  key: SPRING_DATASOURCE_USERNAME
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: student-service-secret
+                  key: SPRING_DATASOURCE_PASSWORD
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: student-deployment-mysql
+  labels:
+    app: student-service-mysql
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: student-service-mysql
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: student-service-mysql
+    spec:
+      containers:
+        - name: student-service-mysql-container
+          image: mysql:8.3.0
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MYSQL_HOST
+              value: student-service-mysql
+            - name: MYSQL_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: student-service-mysql-configmap
+                  key: dbName
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: student-service-mysql-secret
+                  key: username
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: student-service-mysql-secret
+                  key: password
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: student-service-mysql-secret
+                  key: rootPassword
+          volumeMounts:
+            - name: student-service-mysql-data
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: student-service-mysql-data
+          persistentVolumeClaim:
+            claimName: student-service-mysql-pvc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: student-deployment-phpmyadmin
+  labels:
+    app: student-phpmyadmin
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: student-phpmyadmin
+  template:
+    metadata:
+      labels:
+        app: student-phpmyadmin
+    spec:
+      containers:
+        - name: student-phpmyadmin-container
+          image: phpmyadmin:latest
+          ports:
+            - containerPort: 80
+          env:
+            - name: PMA_HOST
+              value: student-service-mysql
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: student-service-mysql-secret
+                  key: rootPassword
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lecturer-deployment
+  labels:
+    app: class-management-lecturer-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: class-management-lecturer-service
+  template:
+    metadata:
+      labels:
+        app: class-management-lecturer-service
+    spec:
+      containers:
+        - name: class-management-lecturer-service-container
+          image: th1enlm02/class-management-lecturer-service:latest
+          ports:
+            - containerPort: 5000
+          env:
+            - name: HOST_NAME
+              value: root:th1enlm02_root@lecturer-service-mongodb
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lecturer-deployment-mongodb
+  labels:
+    app: lecturer-service-mongodb
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: lecturer-service-mongodb
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: lecturer-service-mongodb
+    spec:
+      containers:
+        - name: lecturer-service-mongodb-container
+          image: mongo:7.0.9
+          ports:
+            - containerPort: 27017
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: lecturer-service-mongodb-secret
+                  key: username
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: lecturer-service-mongodb-secret
+                  key: password
+          volumeMounts:
+            - name: lecturer-service-mongodb-data
+              mountPath: /data/db
+      volumes:
+        - name: lecturer-service-mongodb-data
+          persistentVolumeClaim:
+            claimName: mongodb-pvc
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lecturer-deployment-mongo-express
+  labels:
+    app: lecturer-mongo-express
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: lecturer-mongo-express
+  template:
+    metadata:
+      labels:
+        app: lecturer-mongo-express
+    spec:
+      containers:
+        - name: lecturer-mongo-express-container
+          image: mongo-express:1-20
+          ports:
+            - containerPort: 8081
+          env:
+            - name: ME_CONFIG_BASICAUTH
+              value: "false"
+            - name: ME_CONFIG_MONGODB_SERVER
+              value: lecturer-service-mongodb
+            - name: ME_CONFIG_MONGODB_URL
+              value: mongodb://lecturer-service-mongodb:27017
+            - name: ME_CONFIG_MONGODB_ADMINUSERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: lecturer-service-mongo-express-secret
+                  key: username
+            - name: ME_CONFIG_MONGODB_ADMINPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: lecturer-service-mongo-express-secret
+                  key: password
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: class-deployment
+  labels:
+    app: class-management-class-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: class-management-class-service
+  template:
+    metadata:
+      labels:
+        app: class-management-class-service
+    spec:
+      containers:
+        - name: class-management-class-service-container
+          image: th1enlm02/class-management-class-service:latest
+          ports:
+            - containerPort: 80
+          env:
+            - name: HOST
+              value: class-service-postgresql
+            - name: DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: class-service-postgresql-configmap
+                  key: dbName
+            - name: USER
+              valueFrom:
+                secretKeyRef:
+                  name: class-service-postgresql-secret
+                  key: username
+            - name: PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: class-service-postgresql-secret
+                  key: password
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: class-deployment-postgresql
+  labels:
+    app: class-service-postgresql
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: class-service-postgresql
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: class-service-postgresql
+    spec:
+      containers:
+        - name: class-service-postgresql-container
+          image: postgres:latest
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: class-service-postgresql-configmap
+                  key: dbName
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: class-service-postgresql-secret
+                  key: username
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: class-service-postgresql-secret
+                  key: password
+          volumeMounts:
+            - name: class-service-postgresql-data
+              mountPath: /var/lib/postgresql/data
+            - name: init-sql
+              mountPath: /docker-entrypoint-initdb.d
+      volumes:
+        - name: class-service-postgresql-data
+          persistentVolumeClaim:
+            claimName: postgresql-pvc
+        - name: init-sql
+          configMap:
+            name: class-service-postgresql-initdb
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: class-deployment-pgadmin
+  labels:
+    app: class-pgadmin
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: class-pgadmin
+  template:
+    metadata:
+      labels:
+        app: class-pgadmin
+    spec:
+      containers:
+        - name: class-pgadmin-container
+          image: elestio/pgadmin:latest
+          ports:
+            - containerPort: 80
+          env:
+            - name: PGADMIN_DEFAULT_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: class-service-pgadmin-secret
+                  key: email
+            - name: PGADMIN_DEFAULT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: class-service-pgadmin-secret
+                  key: password

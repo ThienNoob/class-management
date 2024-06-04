@@ -1,39 +1,106 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: studentfrontend-service
+  name: frontend-service
 spec:
   selector:
-    app: studentfrontend
+    app: class-management-fe
   type: NodePort
   ports:
     - protocol: TCP
-      port: 3001
+      port: 3000
       targetPort: 3000
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: studentbackend-service
+  name: auth-service
 spec:
   selector:
-    app: studentbackend
+    app: class-management-auth-service
   type: NodePort
   ports:
     - protocol: TCP
-      port: 8081
+      port: 3077
+      targetPort: 3077
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: student-service
+spec:
+  selector:
+    app: class-management-student-service
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 8080
       targetPort: 8080
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: mysql-service
+  name: lecturer-service
 spec:
   selector:
-    app: mysql
-  clusterIP: None
+    app: class-management-lecturer-service
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: class-service
+spec:
+  selector:
+    app: class-management-class-service
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 80
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service-mysql
+spec:
+  selector:
+    app: auth-service-mysql
+  ports:
+    - port: 3305
+      targetPort: 3306
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-phpmyadmin
+spec:
+  selector:
+    app: auth-phpmyadmin
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 79
+      targetPort: 80
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: student-service-mysql
+spec:
+  selector:
+    app: student-service-mysql
   ports:
     - port: 3307
       targetPort: 3306
@@ -42,12 +109,64 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: phpmyadmin-service
+  name: student-phpmyadmin
 spec:
   selector:
-    app: phpmyadmin
+    app: student-phpmyadmin
   type: NodePort
   ports:
     - protocol: TCP
       port: 81
+      targetPort: 80
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lecturer-service-mongodb
+spec:
+  selector:
+    app: lecturer-service-mongodb
+  ports:
+    - port: 27017
+      targetPort: 27017
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lecturer-mongo-express
+spec:
+  selector:
+    app: lecturer-mongo-express
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 8081
+      targetPort: 8081
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: class-service-postgresql
+spec:
+  selector:
+    app: class-service-postgresql
+  ports:
+    - port: 5432
+      targetPort: 5432
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: class-pgadmin
+spec:
+  selector:
+    app: class-pgadmin
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 8082
       targetPort: 80
