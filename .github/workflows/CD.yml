@@ -24,10 +24,11 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v4
+
       - name: Run a one-line script
         run: echo Hello, world!
 
-      # Runs a set of commands using the runners shell
+      # Runs a set of commands using the runner's shell
       - name: Start minikube
         run: |
           minikube start
@@ -36,5 +37,6 @@ jobs:
         run: |
           kubectl apply -f configMap.yaml -f secrets.yaml -f persistentVolume.yaml -f service.yaml -f deployment.yaml
 
-      - name: Check 
+      - name: Check resources
+        run: |
           kubectl get all
