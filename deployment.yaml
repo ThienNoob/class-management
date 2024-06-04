@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: class-management-fe-container
-          image: th1enlm02/class-management-fe:latest
+          image: chucthien03/class-management-fe:latest
           ports:
             - containerPort: 3000
           env:
@@ -48,7 +48,7 @@ spec:
     spec:
       containers:
         - name: class-management-auth-service-container
-          image: th1enlm02/class-management-auth-service:latest
+          image: chucthien03/class-management-auth-service:latest
           ports:
             - containerPort: 3077
           env:
@@ -183,7 +183,7 @@ spec:
     spec:
       containers:
         - name: class-management-student-service-container
-          image: th1enlm02/class-management-student-service:latest
+          image: chucthien03/class-management-student-service:latest
           ports:
             - containerPort: 8080
           env:
@@ -304,12 +304,12 @@ spec:
     spec:
       containers:
         - name: class-management-lecturer-service-container
-          image: th1enlm02/class-management-lecturer-service:latest
+          image: chucthien03/class-management-lecturer-service:latest
           ports:
             - containerPort: 5000
           env:
             - name: HOST_NAME
-              value: root:th1enlm02_root@lecturer-service-mongodb
+              value: root:chucthien03_root@lecturer-service-mongodb
 
 ---
 apiVersion: apps/v1
@@ -413,7 +413,7 @@ spec:
     spec:
       containers:
         - name: class-management-class-service-container
-          image: th1enlm02/class-management-class-service:latest
+          image: chucthien03/class-management-class-service:latest
           ports:
             - containerPort: 80
           env:
