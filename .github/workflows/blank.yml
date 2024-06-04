@@ -28,11 +28,11 @@ jobs:
 
       - name: Apply file yaml
         run: |
-          sudo kubectl apply -f persistentVolume.yaml
-          sudo kubectl apply -f secret.yaml
-          sudo kubectl apply -f configMap.yaml
-          sudo kubectl apply -f service.yaml
-          sudo kubectl apply -f deployment.yaml
+          sudo kubectl apply -f persistentVolume.yaml --validate=false
+          sudo kubectl apply -f secret.yaml --validate=false
+          sudo kubectl apply -f configMap.yaml --validate=false
+          sudo kubectl apply -f service.yaml --validate=false
+          sudo kubectl apply -f deployment.yaml --validate=false
 
       - name: Wait for all Pods to be Running
         run: |
