@@ -7,8 +7,12 @@ spec:
     storage: 5Gi
   accessModes:
     - ReadWriteOnce
+  volumeMode: Filesystem
   hostPath:
     path: "/data/auth-service-mysql"
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: standard
+
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim

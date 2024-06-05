@@ -58,3 +58,14 @@ data:
       "lecturerFullName" VARCHAR(100),
       "numberOfStudents" INT
     );
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: base-url-configmap
+data:
+  REACT_APP_BASE_URL_AUTH: "http://auth-service:30077"
+  REACT_APP_BASE_URL_STUDENT: "http://student-service:8080"
+  REACT_APP_BASE_URL_LECTURER: "http://lecturer-service:5000"
+  REACT_APP_BASE_URL_CLASS: "http://class-service:8000"
