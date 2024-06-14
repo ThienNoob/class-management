@@ -20,6 +20,57 @@ pipeline {
                     '''
             }
         }
+        stages {
+        stage('Set up databases') {
+            steps {
+                script {
+                    sh '''
+                        docker compose -f docker-compose.yml build student-service-mysql
+                        docker compose -f docker-compose.yml build auth-service-mysql
+                        docker compose -f docker-compose.yml build mongodb  
+                        docker compose -f docker-compose.yml build postgresql
+                    '''
+                }
+            }
+        }
+        stage('Set up databases admin tool') {
+            steps {
+                script {
+                    sh '''
+                        docker compose -f docker-compose.yml build auth-phpmyadmin
+                        docker compose -f docker-compose.yml build student-phpmyadmin
+                        docker compose -f docker-compose.yml build mongo-express
+                        docker compose -f docker-compose.yml build pgadmin
+                    '''
+                }
+            }
+        }
+        stage('Build back-end application images') {
+            steps {
+                script {
+                    sh '''
+                        cp class-management-auth-service/Dockerfile .
+                        docker compose -f docker-compose.yml build class-mangement-auth-service
+                        cp class-management-student-service/Dockerfile .
+                        docker compose -f docker-compose.yml build class-management-student-service
+                        cp class-management-lecturer-service/Dockerfile .
+                        docker compose -f docker-compose.yml build class-management-lecturer-service
+                        cp class-management-class-service/Dockerfile .
+                        docker compose -f docker-compose.yml build class-management-class-service
+                    '''
+                }
+            }
+        }
+        stage('Build front-end application image') {
+            steps {
+                script {
+                    sh '''
+                        cp class-management-fe/Dockerfile .
+                        docker compose -f docker-compose.yml build class-mangement-fe
+                    '''
+                }
+            }
+        }
         
         stage('Push images to Docker Hub') {
             steps {
