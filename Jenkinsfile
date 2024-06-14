@@ -9,6 +9,17 @@ pipeline {
                 }
             }
         }
+
+        stage('Set up database'){
+            steps {
+                 sh '''
+                        docker compose -f docker-compose.yml build student-service-mysql
+                        docker compose -f docker-compose.yml build auth-service-mysql
+                        docker compose -f docker-compose.yml build mongodb  
+                        docker compose -f docker-compose.yml build postgresql
+                    '''
+            }
+        }
         
         stage('Push images to Docker Hub') {
             steps {
