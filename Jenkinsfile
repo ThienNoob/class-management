@@ -59,7 +59,14 @@ pipeline {
         stage('Scan images with Trivy') {
             steps {
                 sh '''
-                    rm -f /tmp/trivy-report.txt
+                    # Ensure the file exists and is writable
+                    touch /tmp/trivy-report.txt
+                    chmod +w /tmp/trivy-report.txt
+
+                    # Remove the file if it exists
+                    if [ -f /tmp/trivy-report.txt ]; then
+                        rm /tmp/trivy-report.txt
+                    fi
                     trivy image --severity HIGH,CRITICAL chucthien03/class-management-auth-service >> /tmp/trivy-report.txt
                     trivy image --severity HIGH,CRITICAL chucthien03/class-management-student-service >> /tmp/trivy-report.txt
                     trivy image --severity HIGH,CRITICAL chucthien03/class-management-lecturer-service >> /tmp/trivy-report.txt
