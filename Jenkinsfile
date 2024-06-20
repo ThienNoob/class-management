@@ -68,11 +68,11 @@ pipeline {
         stage('Scan images with Trivy') {
             steps {
                 sh '''
-                    trivy image --exit-code 1 --severity HIGH,CRITICAL class-mangement-auth-service
-                    trivy image --exit-code 1 --severity HIGH,CRITICAL class-management-student-service
-                    trivy image --exit-code 1 --severity HIGH,CRITICAL class-management-lecturer-service
-                    trivy image --exit-code 1 --severity HIGH,CRITICAL class-management-class-service
-                    trivy image --exit-code 1 --severity HIGH,CRITICAL class-mangement-fe
+                    trivy image --exit-code 1 --severity HIGH,CRITICAL chucthien03/class-mangement-auth-service
+                    trivy image --exit-code 1 --severity HIGH,CRITICAL chucthien03/class-management-student-service
+                    trivy image --exit-code 1 --severity HIGH,CRITICAL chucthien03/class-management-lecturer-service
+                    trivy image --exit-code 1 --severity HIGH,CRITICAL chucthien03/class-management-class-service
+                    trivy image --exit-code 1 --severity HIGH,CRITICAL chucthien03/class-mangement-fe
                 '''
             }
     }
