@@ -110,7 +110,7 @@ pipeline {
         always {
             echo 'Cleaning...'
             sh 'docker logout'
-            cleanWs()
+            
         }
         success {
             echo 'Deployment to Dev Environment is successful!'
