@@ -68,7 +68,7 @@ pipeline {
         stage('Scan images with Trivy') {
             steps {
                 sh '''
-                    rm trivy-report.txt
+                    rm -f trivy-report.txt
                     trivy image --severity HIGH,CRITICAL chucthien03/class-management-auth-service >> trivy-report.txt
                     trivy image --severity HIGH,CRITICAL chucthien03/class-management-student-service >> trivy-report.txt
                     trivy image --severity HIGH,CRITICAL chucthien03/class-management-lecturer-service >> trivy-report.txt
