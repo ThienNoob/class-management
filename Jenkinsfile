@@ -59,12 +59,12 @@ pipeline {
         stage('Scan images with Trivy') {
             steps {
                 sh '''
-                    rm -f trivy-report.txt
-                    trivy image --severity HIGH,CRITICAL chucthien03/class-management-auth-service >> /temp/trivy-report.txt
-                    trivy image --severity HIGH,CRITICAL chucthien03/class-management-student-service >> /temp/trivy-report.txt
-                    trivy image --severity HIGH,CRITICAL chucthien03/class-management-lecturer-service >> /temp/trivy-report.txt
-                    trivy image --severity HIGH,CRITICAL chucthien03/class-management-class-service >> /temp/trivy-report.txt
-                    trivy image --severity HIGH,CRITICAL chucthien03/class-management-fe >> /temp/trivy-report.txt
+                    rm -f /tmp/trivy-report.txt
+                    trivy image --severity HIGH,CRITICAL chucthien03/class-management-auth-service >> /tmp/trivy-report.txt
+                    trivy image --severity HIGH,CRITICAL chucthien03/class-management-student-service >> /tmp/trivy-report.txt
+                    trivy image --severity HIGH,CRITICAL chucthien03/class-management-lecturer-service >> /tmp/trivy-report.txt
+                    trivy image --severity HIGH,CRITICAL chucthien03/class-management-class-service >> /tmp/trivy-report.txt
+                    trivy image --severity HIGH,CRITICAL chucthien03/class-management-fe >> /tmp/trivy-report.txt
       
                 '''
             }
@@ -112,7 +112,7 @@ pipeline {
                      to: 'tranchucthienmt@gmail.com',
                      subject: "Pipeline Success: ${currentBuild.fullDisplayName}",
                      body: "Pipeline completed successfully. Find attached Trivy report.",
-                     attachmentsPattern: '/temp/trivy-report.txt'
+                     attachmentsPattern: '/tmp/trivy-report.txt'
         }
         failure {
             echo 'Deployment to Dev Environment failed!'
@@ -120,7 +120,7 @@ pipeline {
                      to: 'tranchucthienmt@gmail.com',
                      subject: "Pipeline Failure: ${currentBuild.fullDisplayName}",
                      body: "Pipeline failed. Please check the logs for details.",
-                     attachmentsPattern: '/temp/trivy-report.txt'
+                     attachmentsPattern: '/tmp/trivy-report.txt'
         }
         unstable {
             echo 'Deployment to Dev Environment is unstable!'
